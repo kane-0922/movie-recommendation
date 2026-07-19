@@ -1,0 +1,30 @@
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: var(--font-body);
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.compact {
+  border-radius: 6px;
+  font-size: 11px;
+  padding: 6px 0;
+  flex: 1;
+}
+
+.active {
+  border-color: var(--accent);
+  background: rgba(201, 168, 108, 0.14);
+  color: var(--accent);
+}

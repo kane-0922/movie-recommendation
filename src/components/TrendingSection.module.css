@@ -1,0 +1,80 @@
+.section {
+  margin-top: 48px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--accent-dim);
+  font-family: var(--font-heading);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: clamp(18px, 2.5vw, 24px);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.badge {
+  display: flex;
+  gap: 4px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  letter-spacing: 0.04em;
+}
+
+.badgeDot {
+  color: rgba(201, 168, 108, 0.5);
+}
+
+.scroll {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  /* 默认：左右都有渐隐 */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+}
+
+.scrollStart {
+  -webkit-mask-image: linear-gradient(to right, black 0%, black 92%, transparent 100%);
+  mask-image: linear-gradient(to right, black 0%, black 92%, transparent 100%);
+}
+
+.scrollEnd {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 8%, black 100%);
+}
+
+.scrollStart.scrollEnd {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.cardWrap {
+  flex: 0 0 clamp(155px, 22vw, 170px);
+}
+
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.titleDesc {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+}

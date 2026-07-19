@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
+@import 'tailwindcss';
+
+/* ===== CSS Custom Properties ===== */
+:root {
+  /* Colors */
+  --bg-primary: #0a0a0c;
+  --bg-secondary: #111113;
+  --bg-tertiary: #1a1a1e;
+  --bg-card: #131315;
+  --border-primary: #1e1e22;
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-muted: rgba(255, 255, 255, 0.08);
+  --text-primary: #f0ece3;
+  --text-secondary: #ede8df;
+  --text-muted: rgba(255, 255, 255, 0.28);
+  --text-dim: rgba(255, 255, 255, 0.38);
+  --text-faint: rgba(255, 255, 255, 0.22);
+  --accent: #c9a86c;
+  --accent-dim: rgba(201, 168, 108, 0.7);
+  --accent-glass: rgba(201, 168, 108, 0.1);
+
+  /* Typography */
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+}
+
+/* ===== Reset & Global ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== Utility ===== */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}

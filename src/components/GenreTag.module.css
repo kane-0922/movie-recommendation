@@ -1,0 +1,11 @@
+.tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: var(--accent-glass);
+  color: var(--accent);
+  border: 1px solid rgba(201, 168, 108, 0.18);
+  white-space: nowrap;
+}

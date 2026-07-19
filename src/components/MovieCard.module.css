@@ -1,0 +1,62 @@
+.card {
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.posterWrap {
+  position: relative;
+  padding-top: 140%;
+  background: var(--bg-tertiary);
+}
+
+.poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ratingBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.info {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.titleCN {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.titleEn {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.genres {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
