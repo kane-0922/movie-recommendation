@@ -33,7 +33,7 @@ export default function App() {
   useEffect(() => {
     setLoading(true)
     setError(null)
-    fetchDiscover({ genreIds: selectedGenreId ? String(selectedGenreId) : undefined, sortBy: 'vote_average.desc', voteCountGte: 200, page: 1 })
+    fetchDiscover({ genreIds: selectedGenreId ? String(selectedGenreId) : undefined, sortBy: 'vote_average.desc', voteCountGte: 2000, page: 1 })
       .then(r => { setDiscoverPool(r.map(tmdbToMovieMinimal)); setLoading(false) })
       .catch(e => { setError(e.message); setLoading(false) })
   }, [selectedGenreId])

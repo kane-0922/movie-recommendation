@@ -13,6 +13,36 @@ const CATEGORIES = [
   { key: 'anime', label: '动画动漫', emoji: '🎨', genreIds: '16' },
 ]
 
+/** 基于日期的 PRNG，每次刷新/切换返回不同页码 */
+function dailyPages(): [number, number] {
+  const d = new Date()
+  const seed = (d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()) >>> 0
+  let s = Math.imul(seed ^ (seed >>> 16), 0x45d9f3b) >>> 0
+  s = Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0
+  const p1 = (s % 10) + 1
+  s = Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0
+  let p2 = (s % 10) + 1
+  if (p2 === p1) p2 = p1 < 10 ? p1 + 1 : 1
+  return [p1, p2]
+}
+
+async function fetchMovies(genreIds: string): Promise<Movie[]> {
+  const [page1, page2] = dailyPages()
+  const [r1, r2] = await Promise.all([
+    fetchDiscover({ genreIds, sortBy: 'vote_average.desc', voteCountGte: 2000, page: page1 }),
+    fetchDiscover({ genreIds, sortBy: 'vote_average.desc', voteCountGte: 2000, page: page2 }),
+  ])
+  const seen = new Set<number>()
+  const all: Movie[] = []
+  for (const m of [...r1, ...r2]) {
+    if (!seen.has(m.id)) {
+      seen.add(m.id)
+      all.push(tmdbToMovieMinimal(m))
+    }
+  }
+  return all.slice(0, 5)
+}
+
 export default function FilterPage({
   status,
   onToggleStatus,
@@ -30,18 +60,11 @@ export default function FilterPage({
   const activeCategory = CATEGORIES.find(c => c.key === activeKey)!
 
   useEffect(() => {
-    const cat = CATEGORIES[0]
     setLoading(true)
     setError(null)
-    fetchDiscover({ genreIds: cat.genreIds, sortBy: 'vote_average.desc', voteCountGte: 200 })
-      .then(r => {
-        setMovies(r.map(tmdbToMovieMinimal).slice(0, 5))
-        setLoading(false)
-      })
-      .catch(e => {
-        setError(e.message)
-        setLoading(false)
-      })
+    fetchMovies(CATEGORIES[0].genreIds)
+      .then(m => { setMovies(m); setLoading(false) })
+      .catch(e => { setError(e.message); setLoading(false) })
   }, [])
 
   const handleSelect = (key: string, genreIds: string) => {
@@ -49,15 +72,9 @@ export default function FilterPage({
     setLoading(true)
     setError(null)
     setMovies([])
-    fetchDiscover({ genreIds, sortBy: 'vote_average.desc', voteCountGte: 200 })
-      .then(r => {
-        setMovies(r.map(tmdbToMovieMinimal).slice(0, 5))
-        setLoading(false)
-      })
-      .catch(e => {
-        setError(e.message)
-        setLoading(false)
-      })
+    fetchMovies(genreIds)
+      .then(m => { setMovies(m); setLoading(false) })
+      .catch(e => { setError(e.message); setLoading(false) })
   }
 
   return (
