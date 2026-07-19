@@ -5,42 +5,50 @@ import MovieCard from '../components/MovieCard'
 import styles from './FilterPage.module.css'
 
 const CATEGORIES = [
-  { key: 'hardcore', label: '硬核视听', emoji: '🎬', genreIds: '28,12,878,14' },
-  { key: 'suspense', label: '悬疑烧脑', emoji: '🔍', genreIds: '53,9648,80,27' },
+  { key: 'hardcore', label: '硬核视听', emoji: '🎬', genreIds: '28|12|878|14' },
+  { key: 'suspense', label: '悬疑烧脑', emoji: '🔍', genreIds: '53|9648|80|27' },
   { key: 'romance', label: '浪漫爱情', emoji: '💕', genreIds: '10749' },
-  { key: 'drama', label: '剧情故事', emoji: '🎭', genreIds: '18,36,10752' },
+  { key: 'drama', label: '剧情故事', emoji: '🎭', genreIds: '18|36|10752' },
   { key: 'comedy', label: '轻松一刻', emoji: '😄', genreIds: '35' },
   { key: 'anime', label: '动画动漫', emoji: '🎨', genreIds: '16' },
 ]
 
-/** 基于日期的 PRNG，每次刷新/切换返回不同页码 */
-function dailyPages(): [number, number] {
+const MAX_ATTEMPTS = 10
+const TARGET_COUNT = 5
+
+async function fetchMovies(genreIds: string): Promise<Movie[]> {
   const d = new Date()
   const seed = (d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()) >>> 0
   let s = Math.imul(seed ^ (seed >>> 16), 0x45d9f3b) >>> 0
   s = Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0
-  const p1 = (s % 10) + 1
-  s = Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0
-  let p2 = (s % 10) + 1
-  if (p2 === p1) p2 = p1 < 10 ? p1 + 1 : 1
-  return [p1, p2]
-}
 
-async function fetchMovies(genreIds: string): Promise<Movie[]> {
-  const [page1, page2] = dailyPages()
-  const [r1, r2] = await Promise.all([
-    fetchDiscover({ genreIds, sortBy: 'vote_average.desc', voteCountGte: 2000, page: page1 }),
-    fetchDiscover({ genreIds, sortBy: 'vote_average.desc', voteCountGte: 2000, page: page2 }),
-  ])
+  const picks: Movie[] = []
   const seen = new Set<number>()
-  const all: Movie[] = []
-  for (const m of [...r1, ...r2]) {
-    if (!seen.has(m.id)) {
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS && picks.length < TARGET_COUNT; attempt++) {
+    const page = (s % 50) + 1
+    s = Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0
+
+    try {
+      const results = await fetchDiscover({ genreIds, sortBy: 'popularity.desc', voteCountGte: 1000, page })
+      if (results.length === 0) continue
+
+      // random index 0 ~ results.length-1
+      const idx = s % results.length
+      s = Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0
+
+      const m = results[idx]
+      // client-side filter: popularity >= 2.5
+      if (m.popularity < 2.5) continue
+      // dedup
+      if (seen.has(m.id)) continue
+
       seen.add(m.id)
-      all.push(tmdbToMovieMinimal(m))
-    }
+      picks.push(tmdbToMovieMinimal(m))
+    } catch { /* skip failed pages */ }
   }
-  return all.slice(0, 5)
+
+  return picks.slice(0, TARGET_COUNT)
 }
 
 export default function FilterPage({
@@ -79,13 +87,11 @@ export default function FilterPage({
 
   return (
     <main className={styles.main}>
-      {/* ----- header ----- */}
       <div className={styles.head}>
         <p className={styles.sectionLabel}>FILTER</p>
         <h1 className={styles.sectionTitle}>筛选推荐</h1>
       </div>
 
-      {/* ----- category buttons ----- */}
       <div className={styles.categoryGrid}>
         {CATEGORIES.map(c => (
           <button
@@ -99,7 +105,6 @@ export default function FilterPage({
         ))}
       </div>
 
-      {/* ----- results ----- */}
       {activeCategory && (
         <div className={styles.resultSection}>
           <div className={styles.resultHead}>
