@@ -14,11 +14,17 @@ export default function App() {
   const location = useLocation()
 
   // ---------- global state ----------
-  const [status, setStatus] = useState<Record<number, WatchStatus>>({})
+  const [status, setStatus] = useState<Record<number, WatchStatus>>(() => {
+    try {
+      const saved = localStorage.getItem('watch_status')
+      return saved ? JSON.parse(saved) : {}
+    } catch { return {} }
+  })
   const [myFilter, setMyFilter] = useState<'want' | 'watched'>('want')
   const [discoverPool, setDiscoverPool] = useState<Movie[]>([])
   const [trendingMovies, setTrendingMovies] = useState<Movie[]>([])
   const [dailyPicks, setDailyPicks] = useState<Movie[]>([])
+  const [filterMovies, setFilterMovies] = useState<Movie[]>([])
   const [genreList, setGenreList] = useState<{ id: number; name: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -50,7 +56,23 @@ export default function App() {
       }
     }
 
+    const todayStr = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`
+    const CACHE_KEY = `daily_${todayStr}`
+
     const doFetch = async () => {
+      // check localStorage first
+      const cached = localStorage.getItem(CACHE_KEY)
+      if (cached) {
+        try {
+          const data = JSON.parse(cached)
+          if (Array.isArray(data) && data.length >= 5) {
+            setDailyPicks(data)
+            setLoading(false)
+            return
+          }
+        } catch { /* corrupt cache — refetch */ }
+      }
+
       setLoading(true)
       setError(null)
       const picks: Movie[] = []
@@ -73,6 +95,7 @@ export default function App() {
       }
 
       setDailyPicks(picks)
+      localStorage.setItem(CACHE_KEY, JSON.stringify(picks))
       setLoading(false)
     }
     doFetch()
@@ -90,14 +113,23 @@ export default function App() {
       .catch(e => console.error('[trending]', e))
   }, [])
 
+  // persist watch status to localStorage
+  useEffect(() => {
+    localStorage.setItem('watch_status', JSON.stringify(status))
+  }, [status])
+
   // ---------- derived data ----------
-  const allMovies = useMemo(() => [...discoverPool, ...trendingMovies, ...dailyPicks], [discoverPool, trendingMovies, dailyPicks])
+  const allMovies = useMemo(() => [...discoverPool, ...trendingMovies, ...dailyPicks, ...filterMovies], [discoverPool, trendingMovies, dailyPicks, filterMovies])
   const wantList = allMovies.filter(m => status[m.id] === 'want')
   const watchedList = allMovies.filter(m => status[m.id] === 'watched')
 
   // ---------- actions ----------
   const toggleStatus = (id: number, target: Exclude<WatchStatus, 'none'>) => {
-    setStatus(prev => ({ ...prev, [id]: prev[id] === target ? 'none' : target }))
+    setStatus(prev => {
+      const next: Record<number, WatchStatus> = { ...prev, [id]: prev[id] === target ? 'none' : target }
+      localStorage.setItem('watch_status', JSON.stringify(next))
+      return next
+    })
   }
 
   const navigateToMovie = (id: number) => {
@@ -173,7 +205,7 @@ export default function App() {
             />
           }
         />
-        <Route path="/filter" element={<FilterPage status={status} onToggleStatus={toggleStatus} onMovieClick={navigateToMovie} />} />
+        <Route path="/filter" element={<FilterPage status={status} onToggleStatus={toggleStatus} onMovieClick={navigateToMovie} filterMovies={filterMovies} setFilterMovies={setFilterMovies} />} />
         <Route
           path="/mylist"
           element={
