@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import type { Movie, WatchStatus } from './types/movie'
-import { getDailyPicks } from './utils/movie'
 import { getTodayString } from './utils/date'
-import { fetchGenres, fetchDiscover, fetchTrending, tmdbToMovieMinimal } from './api/tmdb'
+import { fetchGenres, fetchDiscover, fetchTrending, fetchTopRated, tmdbToMovieMinimal } from './api/tmdb'
 import MovieDetailRoute from './components/MovieDetailRoute'
 import TodayPage from './pages/TodayPage'
 import FilterPage from './pages/FilterPage'
@@ -15,11 +14,11 @@ export default function App() {
   const location = useLocation()
 
   // ---------- global state ----------
-  const [selectedGenreId, setSelectedGenreId] = useState<number | null>(null)
   const [status, setStatus] = useState<Record<number, WatchStatus>>({})
   const [myFilter, setMyFilter] = useState<'want' | 'watched'>('want')
   const [discoverPool, setDiscoverPool] = useState<Movie[]>([])
   const [trendingMovies, setTrendingMovies] = useState<Movie[]>([])
+  const [dailyPicks, setDailyPicks] = useState<Movie[]>([])
   const [genreList, setGenreList] = useState<{ id: number; name: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -30,21 +29,63 @@ export default function App() {
     fetchGenres().then(g => setGenreList(g)).catch(() => {})
   }, [])
 
+  // daily picks: top_rated, deterministic random pages, serial fetch
   useEffect(() => {
-    setLoading(true)
-    setError(null)
-    fetchDiscover({ genreIds: selectedGenreId ? String(selectedGenreId) : undefined, sortBy: 'vote_average.desc', voteCountGte: 2000, page: 1 })
-      .then(r => { setDiscoverPool(r.map(tmdbToMovieMinimal)); setLoading(false) })
-      .catch(e => { setError(e.message); setLoading(false) })
-  }, [selectedGenreId])
+    const d = new Date()
+    const seed = (d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()) >>> 0
+    let s = Math.imul(seed ^ (seed >>> 16), 0x45d9f3b) >>> 0
+    s = Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0
+
+    // 5 unique page numbers 1-100
+    const pages: number[] = []
+    const pageSet = new Set<number>()
+    while (pages.length < 5) {
+      const p = (s % 60) + 1
+      s = Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0
+      if (!pageSet.has(p)) {
+        pageSet.add(p)
+        pages.push(p)
+      }
+    }
+
+    const doFetch = async () => {
+      setLoading(true)
+      setError(null)
+      const picks: Movie[] = []
+      const seen = new Set<number>()
+
+      for (const page of pages) {
+        try {
+          const results = await fetchTopRated(page)
+          if (results.length === 0) continue
+          const idx = s % results.length
+          s = Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0
+          const movie = tmdbToMovieMinimal(results[idx])
+          if (!seen.has(movie.id)) {
+            seen.add(movie.id)
+            picks.push(movie)
+          }
+        } catch { /* skip failed pages */ }
+      }
+
+      setDailyPicks(picks)
+      setLoading(false)
+    }
+    doFetch()
+  }, [])
+
+  useEffect(() => {
+    fetchDiscover({ sortBy: 'vote_average.desc', voteCountGte: 2000, page: 1 })
+      .then(r => setDiscoverPool(r.map(tmdbToMovieMinimal)))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     fetchTrending().then(r => setTrendingMovies(r.map(tmdbToMovieMinimal))).catch(e => console.error('[trending]', e))
   }, [])
 
   // ---------- derived data ----------
-  const allMovies = useMemo(() => [...discoverPool, ...trendingMovies], [discoverPool, trendingMovies])
-  const dailyPicks = useMemo(() => getDailyPicks(discoverPool), [discoverPool])
+  const allMovies = useMemo(() => [...discoverPool, ...trendingMovies, ...dailyPicks], [discoverPool, trendingMovies, dailyPicks])
   const wantList = allMovies.filter(m => status[m.id] === 'want')
   const watchedList = allMovies.filter(m => status[m.id] === 'watched')
 

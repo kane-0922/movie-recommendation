@@ -96,6 +96,14 @@ export async function fetchTrending(): Promise<TMDbMovieResult[]> {
   return data.results ?? []
 }
 
+export async function fetchTopRated(page: number): Promise<TMDbMovieResult[]> {
+  const res = await fetch(
+    `${TMDB_BASE}/movie/top_rated?api_key=${API_KEY}&language=zh-CN&page=${page}`
+  )
+  const data = await res.json()
+  return data.results ?? []
+}
+
 export async function fetchMovieDetail(
   id: number
 ): Promise<TMDbMovieDetail> {
