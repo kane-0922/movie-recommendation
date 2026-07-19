@@ -29,6 +29,12 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [detailCache, setDetailCache] = useState<Record<number, Movie>>({})
+  const [movieCache, setMovieCache] = useState<Record<number, Movie>>(() => {
+    try {
+      const saved = localStorage.getItem('movie_cache')
+      return saved ? JSON.parse(saved) : {}
+    } catch { return {} }
+  })
 
   // ---------- data fetching ----------
   useEffect(() => {
@@ -118,8 +124,35 @@ export default function App() {
     localStorage.setItem('watch_status', JSON.stringify(status))
   }, [status])
 
+  // persist movie cache to localStorage
+  useEffect(() => {
+    localStorage.setItem('movie_cache', JSON.stringify(movieCache))
+  }, [movieCache])
+
+  // sync movies from all pools into persistent cache (so marked movies survive pool changes)
+  useEffect(() => {
+    const allCurrent = [...discoverPool, ...trendingMovies, ...dailyPicks, ...filterMovies]
+    if (allCurrent.length === 0) return
+    setMovieCache(prev => {
+      const next = { ...prev }
+      let changed = false
+      for (const m of allCurrent) {
+        if (!(m.id in next)) {
+          next[m.id] = m
+          changed = true
+        }
+      }
+      return changed ? next : prev
+    })
+  }, [discoverPool, trendingMovies, dailyPicks, filterMovies])
+
   // ---------- derived data ----------
-  const allMovies = useMemo(() => [...discoverPool, ...trendingMovies, ...dailyPicks, ...filterMovies], [discoverPool, trendingMovies, dailyPicks, filterMovies])
+  const allMovies = useMemo(() => {
+    const pool = [...discoverPool, ...trendingMovies, ...dailyPicks, ...filterMovies]
+    const seen = new Set(pool.map(m => m.id))
+    const cached = Object.values(movieCache).filter(m => !seen.has(m.id))
+    return [...pool, ...cached]
+  }, [discoverPool, trendingMovies, dailyPicks, filterMovies, movieCache])
   const wantList = allMovies.filter(m => status[m.id] === 'want')
   const watchedList = allMovies.filter(m => status[m.id] === 'watched')
 
