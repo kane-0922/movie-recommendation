@@ -27,5 +27,9 @@ export function getDailyPicks(movies: Movie[]): Movie[] {
 
 export function getDailyQuote(): Quote {
   const d = new Date()
-  return QUOTES[d.getDate() % QUOTES.length]
+  // 基于年月日的确定性 PRNG，每天随机但不重复
+  const seed = (d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()) >>> 0
+  let s = Math.imul(seed ^ (seed >>> 16), 0x45d9f3b) >>> 0
+  s = Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0
+  return QUOTES[s % QUOTES.length]
 }
