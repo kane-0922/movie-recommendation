@@ -5,15 +5,21 @@
 command = "npm run build"
 publish = "dist"
 
-# SPA fallback：所有非 /api/* 非静态文件的请求回退到 index.html
-# BrowserRouter (HTML5 History) 需要此配置才能正确处理 /movie/:id、/mylist 等路由
+# 静态资源直通（JS / CSS / 图片），不做 SPA fallback
 [[redirects]]
-from = "/*"
-to = "/index.html"
+from = "/assets/*"
+to = "/assets/:splat"
 status = 200
 
 # /api/* 由 Edge Functions 处理，不做 SPA fallback
 [[redirects]]
 from = "/api/*"
 to = "/api/:splat"
+status = 200
+
+# SPA fallback：其余路径回退到 index.html
+# BrowserRouter (HTML5 History) 需要此配置才能正确处理 /movie/:id、/mylist 等路由
+[[redirects]]
+from = "/*"
+to = "/index.html"
 status = 200
