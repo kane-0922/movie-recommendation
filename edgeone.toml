@@ -11,13 +11,8 @@ from = "/assets/*"
 to = "/assets/:splat"
 status = 200
 
-# /api/* 由 Edge Functions 处理，不做 SPA fallback
-[[redirects]]
-from = "/api/*"
-to = "/api/:splat"
-status = 200
-
 # SPA fallback：其余路径回退到 index.html
+# /api/* 由 functions/ 目录自动路由，无需在此声明
 # BrowserRouter (HTML5 History) 需要此配置才能正确处理 /movie/:id、/mylist 等路由
 [[redirects]]
 from = "/*"
