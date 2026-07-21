@@ -32,6 +32,17 @@ export async function onRequest(context) {
       });
     }
 
+    // 检查环境变量是否已配置
+    if (!env.TMDB_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: 'TMDB_API_KEY not configured' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+    }
+
     // 继承前端传来的查询参数，追加 api_key
     const searchParams = new URLSearchParams(url.search);
     searchParams.set('api_key', env.TMDB_API_KEY);
@@ -42,9 +53,15 @@ export async function onRequest(context) {
       headers: { Accept: 'application/json' },
     });
 
-    const response = new Response(tmdbRes.body, tmdbRes);
-    response.headers.set('Access-Control-Allow-Origin', '*');
-    return response;
+    // 读取 TMDB 响应体，手动构建 Response（避免克隆不可序列化的响应头）
+    const data = await tmdbRes.json();
+    return new Response(JSON.stringify(data), {
+      status: tmdbRes.status,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   } catch (err) {
     return new Response(
       JSON.stringify({ error: 'Proxy error', message: err.message }),
