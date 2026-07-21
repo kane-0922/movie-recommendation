@@ -43,8 +43,9 @@ export async function onRequest(context) {
       );
     }
 
-    // 继承前端传来的查询参数，追加 api_key
+    // 继承前端传来的查询参数，但排除 api_key（前端发送空值，在服务端注入真实密钥）
     const searchParams = new URLSearchParams(url.search);
+    searchParams.delete('api_key');
     searchParams.set('api_key', env.TMDB_API_KEY);
 
     const tmdbUrl = `https://api.themoviedb.org/3/${tmdbPath}?${searchParams.toString()}`;
