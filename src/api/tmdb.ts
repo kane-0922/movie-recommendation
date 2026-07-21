@@ -1,13 +1,9 @@
 import type { Movie } from '../types/movie'
 
-// 生产环境走 EdgeOne Functions 代理，开发环境直连 TMDB
-const API_BASE = import.meta.env.PROD
-  ? '/api'
-  : 'https://api.themoviedb.org/3'
+const API_BASE = 'https://api.themoviedb.org/3'
 
-const API_KEY = import.meta.env.PROD
-  ? ''
-  : 'f66def6df3e8b92795935256ed704361'
+// VITE_TMDB_API_KEY 在构建时由 Vite 内联，本地开发从 .env 读取，Cloudflare 在控制台配置
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY
 
 export const TMDB_IMG_BASE = 'https://image.tmdb.org/t/p'
 
