@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import type { Movie, WatchStatus } from '../types/movie'
 import { fetchDiscover, tmdbToMovieMinimal } from '../api/tmdb'
 import MovieCard from '../components/MovieCard'
+import type { Movie, WatchStatus } from '../types/movie'
 import styles from './FilterPage.module.css'
 
 const CATEGORIES = [
@@ -10,7 +10,7 @@ const CATEGORIES = [
   { key: 'romance', label: '浪漫爱情', emoji: '💕', genreIds: '10749', maxPage: 30 },
   { key: 'drama', label: '剧情故事', emoji: '🎭', genreIds: '18|36|10752', maxPage: 50 },
   { key: 'comedy', label: '轻松一刻', emoji: '😄', genreIds: '35', maxPage: 30 },
-  { key: 'anime', label: '动画动漫', emoji: '🎨', genreIds: '16', maxPage: 20 },
+  { key: 'anime', label: '动画动漫', emoji: '🎨', genreIds: '16', maxPage: 20 }
 ]
 
 const MAX_ATTEMPTS = 10
@@ -26,7 +26,9 @@ async function fetchMovies(cacheKey: string, genreIds: string, maxPage: number):
     try {
       const data = JSON.parse(cached)
       if (Array.isArray(data) && data.length >= 5) return data
-    } catch { /* corrupt — refetch */ }
+    } catch {
+      /* corrupt — refetch */
+    }
   }
 
   const seed = (d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()) >>> 0
@@ -53,7 +55,9 @@ async function fetchMovies(cacheKey: string, genreIds: string, maxPage: number):
 
       seen.add(m.id)
       picks.push(tmdbToMovieMinimal(m))
-    } catch { /* skip failed pages */ }
+    } catch {
+      /* skip failed pages */
+    }
   }
 
   const result = picks.slice(0, TARGET_COUNT)
@@ -66,7 +70,7 @@ export default function FilterPage({
   onToggleStatus,
   onMovieClick,
   filterMovies,
-  setFilterMovies,
+  setFilterMovies
 }: {
   status: Record<number, WatchStatus>
   onToggleStatus: (id: number, t: Exclude<WatchStatus, 'none'>) => void
@@ -84,8 +88,14 @@ export default function FilterPage({
     setLoading(true)
     setError(null)
     fetchMovies(CATEGORIES[0].key, CATEGORIES[0].genreIds, CATEGORIES[0].maxPage)
-      .then(m => { setFilterMovies(m); setLoading(false) })
-      .catch(e => { setError(e.message); setLoading(false) })
+      .then(m => {
+        setFilterMovies(m)
+        setLoading(false)
+      })
+      .catch(e => {
+        setError(e.message)
+        setLoading(false)
+      })
   }, [])
 
   const handleSelect = (key: string) => {
@@ -95,15 +105,24 @@ export default function FilterPage({
     setError(null)
     setFilterMovies([])
     fetchMovies(cat.key, cat.genreIds, cat.maxPage)
-      .then(m => { setFilterMovies(m); setLoading(false) })
-      .catch(e => { setError(e.message); setLoading(false) })
+      .then(m => {
+        setFilterMovies(m)
+        setLoading(false)
+      })
+      .catch(e => {
+        setError(e.message)
+        setLoading(false)
+      })
   }
 
   return (
     <main className={styles.main}>
       <div className={styles.head}>
         <p className={styles.sectionLabel}>FILTER</p>
-        <h1 className={styles.sectionTitle}>筛选推荐</h1>
+        <div className={styles.titleRow}>
+          <h1 className={styles.sectionTitle}>筛选推荐</h1>
+          <span className={styles.titleDesc}>根据您的偏好筛选推荐电影</span>
+        </div>
       </div>
 
       <div className={styles.categoryGrid}>
@@ -111,8 +130,7 @@ export default function FilterPage({
           <button
             key={c.key}
             onClick={() => handleSelect(c.key)}
-            className={`${styles.categoryBtn} ${activeKey === c.key ? styles.categoryBtnActive : ''}`}
-          >
+            className={`${styles.categoryBtn} ${activeKey === c.key ? styles.categoryBtnActive : ''}`}>
             <span className={styles.categoryEmoji}>{c.emoji}</span>
             <span className={styles.categoryName}>{c.label}</span>
           </button>
@@ -137,13 +155,7 @@ export default function FilterPage({
           ) : (
             <div className={styles.grid}>
               {filterMovies.map(m => (
-                <MovieCard
-                  key={m.id}
-                  movie={m}
-                  status={status[m.id] ?? 'none'}
-                  onToggle={onToggleStatus}
-                  onClick={() => onMovieClick(m.id)}
-                />
+                <MovieCard key={m.id} movie={m} status={status[m.id] ?? 'none'} onToggle={onToggleStatus} onClick={() => onMovieClick(m.id)} />
               ))}
             </div>
           )}

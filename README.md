@@ -1,3 +1,5 @@
+**在线地址**：https://reel-movie.chaukane2004.workers.dev （注意：国内访问可能需要科学上网）
+
 # REEL · 每日好片
 
 电影推荐应用 — 基于 TMDB API 的精选电影发现平台，支持每日推荐、分类筛选和我的片单管理。
@@ -12,14 +14,14 @@
 
 ## 技术栈
 
-| 类别 | 技术 |
-|------|------|
-| 框架 | React 19 |
-| 构建 | Vite 8 |
-| 语言 | TypeScript 5.7 |
-| 路由 | react-router-dom v7 |
-| 样式 | CSS Modules + Tailwind CSS 4 |
-| 数据 | TMDB API v3 |
+| 类别 | 技术                                       |
+| ---- | ------------------------------------------ |
+| 框架 | React 19                                   |
+| 构建 | Vite 8                                     |
+| 语言 | TypeScript 5.7                             |
+| 路由 | react-router-dom v7                        |
+| 样式 | CSS Modules + Tailwind CSS 4               |
+| 数据 | TMDB API v3                                |
 | 部署 | EdgeOne Pages（静态托管 + Edge Functions） |
 
 ## 快速开始
@@ -70,26 +72,3 @@ src/
 npm run build    # 输出到 dist/
 npm run preview  # 预览生产构建
 ```
-
-### 部署到 EdgeOne Pages
-
-项目已配置 EdgeOne Pages 部署所需的全部文件：
-
-- **`functions/api/[[path]].js`** — Edge Function，代理 TMDB API 请求，在服务端注入 API Key
-- **`edgeone.toml`** — SPA fallback 配置（BrowserRouter 需要）
-- **`.env.example`** — 环境变量说明
-
-部署步骤：
-
-1. 在 EdgeOne 控制台创建 Pages 项目，关联 Git 仓库（或直接上传 `dist/`）
-2. 构建配置：框架 `Vite`，命令 `npm run build`，输出目录 `dist`
-3. 添加环境变量 `TMDB_API_KEY` = 你的 TMDB API Key
-4. 部署后验证 `/mylist`、`/movie/:id` 等路由可正常访问
-
-> TMDB API Key 申请：https://www.themoviedb.org/settings/api
-
-## 环境变量
-
-| 变量 | 说明 | 必填 |
-|------|------|------|
-| `TMDB_API_KEY` | TMDB API v3 密钥，EdgeOne 控制台配置 | 是（生产环境） |

@@ -56,7 +56,7 @@ export default function TrendingSection({
           <p className={styles.label}>TRENDING</p>
           <div className={styles.titleRow}>
             <h2 className={styles.title}>近期热门</h2>
-            <span className={styles.titleDesc}>推荐里没有想看的？那来看看近期热门吧！</span>
+            <span className={styles.titleDesc}>本周你值得关注的电影</span>
           </div>
         </div>
         <div className={styles.badge}>
