@@ -1,8 +1,15 @@
 import type { Movie } from '../types/movie'
 
-const TMDB_BASE = 'https://api.themoviedb.org/3'
+// 生产环境走 EdgeOne Functions 代理，开发环境直连 TMDB
+const API_BASE = import.meta.env.PROD
+  ? '/api'
+  : 'https://api.themoviedb.org/3'
+
+const API_KEY = import.meta.env.PROD
+  ? ''
+  : 'f66def6df3e8b92795935256ed704361'
+
 export const TMDB_IMG_BASE = 'https://image.tmdb.org/t/p'
-const API_KEY = 'f66def6df3e8b92795935256ed704361'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -61,7 +68,7 @@ export async function fetchGenres(
   language = 'zh-CN'
 ): Promise<TMDbGenre[]> {
   const res = await fetch(
-    `${TMDB_BASE}/genre/movie/list?api_key=${API_KEY}&language=${language}`
+    `${API_BASE}/genre/movie/list?api_key=${API_KEY}&language=${language}`
   )
   const data = await res.json()
   const genres: TMDbGenre[] = data.genres ?? []
@@ -85,14 +92,14 @@ export async function fetchDiscover(options: {
   if (options.page) params.page = String(options.page)
 
   const qs = new URLSearchParams(params).toString()
-  const res = await fetch(`${TMDB_BASE}/discover/movie?${qs}`)
+  const res = await fetch(`${API_BASE}/discover/movie?${qs}`)
   const data = await res.json()
   return data.results ?? []
 }
 
 export async function fetchTrending(): Promise<TMDbMovieResult[]> {
   const res = await fetch(
-    `${TMDB_BASE}/movie/popular?api_key=${API_KEY}&language=zh-CN`
+    `${API_BASE}/movie/popular?api_key=${API_KEY}&language=zh-CN`
   )
   const data = await res.json()
   return data.results ?? []
@@ -100,7 +107,7 @@ export async function fetchTrending(): Promise<TMDbMovieResult[]> {
 
 export async function fetchTopRated(page: number): Promise<TMDbMovieResult[]> {
   const res = await fetch(
-    `${TMDB_BASE}/movie/top_rated?api_key=${API_KEY}&language=zh-CN&page=${page}`
+    `${API_BASE}/movie/top_rated?api_key=${API_KEY}&language=zh-CN&page=${page}`
   )
   const data = await res.json()
   return data.results ?? []
@@ -110,7 +117,7 @@ export async function fetchMovieDetail(
   id: number
 ): Promise<TMDbMovieDetail> {
   const res = await fetch(
-    `${TMDB_BASE}/movie/${id}?api_key=${API_KEY}&language=zh-CN&append_to_response=credits`
+    `${API_BASE}/movie/${id}?api_key=${API_KEY}&language=zh-CN&append_to_response=credits`
   )
   return res.json()
 }
