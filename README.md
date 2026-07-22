@@ -63,12 +63,3 @@ src/
 ├── main.tsx                   # 入口（BrowserRouter）
 └── index.css                  # 全局样式 + CSS 变量 + 字体
 ```
-
-## 构建与部署
-
-### 本地构建
-
-```bash
-npm run build    # 输出到 dist/
-npm run preview  # 预览生产构建
-```
