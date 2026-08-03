@@ -1,11 +1,11 @@
 import type { Movie } from '../types/movie'
 
-const API_BASE = 'https://api.themoviedb.org/3'
+const API_BASE = 'https://tmdbapi.kaneisme.xyz/3'
 
 // VITE_TMDB_API_KEY 在构建时由 Vite 内联，本地开发从 .env 读取，Cloudflare 在控制台配置
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY
 
-export const TMDB_IMG_BASE = 'https://image.tmdb.org/t/p'
+export const TMDB_IMG_BASE = 'https://tmdbapi.kaneisme.xyz/t/p'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -52,7 +52,7 @@ export function getGenreName(id: number): string {
 export function getAvailableGenres(): TMDbGenre[] {
   return Object.entries(genreNameMap).map(([id, name]) => ({
     id: Number(id),
-    name,
+    name
   }))
 }
 
@@ -60,15 +60,11 @@ export function getAvailableGenres(): TMDbGenre[] {
 /*  API calls                                                          */
 /* ------------------------------------------------------------------ */
 
-export async function fetchGenres(
-  language = 'zh-CN'
-): Promise<TMDbGenre[]> {
-  const res = await fetch(
-    `${API_BASE}/genre/movie/list?api_key=${API_KEY}&language=${language}`
-  )
+export async function fetchGenres(language = 'zh-CN'): Promise<TMDbGenre[]> {
+  const res = await fetch(`${API_BASE}/genre/movie/list?api_key=${API_KEY}&language=${language}`)
   const data = await res.json()
   const genres: TMDbGenre[] = data.genres ?? []
-  genreNameMap = Object.fromEntries(genres.map((g) => [g.id, g.name]))
+  genreNameMap = Object.fromEntries(genres.map(g => [g.id, g.name]))
   return genres
 }
 
@@ -82,7 +78,7 @@ export async function fetchDiscover(options: {
     api_key: API_KEY,
     language: 'zh-CN',
     sort_by: options.sortBy ?? 'vote_average.desc',
-    'vote_count.gte': String(options.voteCountGte ?? 200),
+    'vote_count.gte': String(options.voteCountGte ?? 200)
   }
   if (options.genreIds) params.with_genres = options.genreIds
   if (options.page) params.page = String(options.page)
@@ -94,27 +90,19 @@ export async function fetchDiscover(options: {
 }
 
 export async function fetchTrending(): Promise<TMDbMovieResult[]> {
-  const res = await fetch(
-    `${API_BASE}/movie/popular?api_key=${API_KEY}&language=zh-CN`
-  )
+  const res = await fetch(`${API_BASE}/movie/popular?api_key=${API_KEY}&language=zh-CN`)
   const data = await res.json()
   return data.results ?? []
 }
 
 export async function fetchTopRated(page: number): Promise<TMDbMovieResult[]> {
-  const res = await fetch(
-    `${API_BASE}/movie/top_rated?api_key=${API_KEY}&language=zh-CN&page=${page}`
-  )
+  const res = await fetch(`${API_BASE}/movie/top_rated?api_key=${API_KEY}&language=zh-CN&page=${page}`)
   const data = await res.json()
   return data.results ?? []
 }
 
-export async function fetchMovieDetail(
-  id: number
-): Promise<TMDbMovieDetail> {
-  const res = await fetch(
-    `${API_BASE}/movie/${id}?api_key=${API_KEY}&language=zh-CN&append_to_response=credits`
-  )
+export async function fetchMovieDetail(id: number): Promise<TMDbMovieDetail> {
+  const res = await fetch(`${API_BASE}/movie/${id}?api_key=${API_KEY}&language=zh-CN&append_to_response=credits`)
   return res.json()
 }
 
@@ -123,18 +111,13 @@ export async function fetchMovieDetail(
 /* ------------------------------------------------------------------ */
 
 /** Build a poster / backdrop URL from a TMDB path */
-export function tmdbImgUrl(
-  path: string | null,
-  width: number
-): string | null {
+export function tmdbImgUrl(path: string | null, width: number): string | null {
   if (!path) return null
   return `${TMDB_IMG_BASE}/w${width}${path}`
 }
 
 /** Convert a TMDB list result to our internal Movie shape (partial) */
-export function tmdbToMovieMinimal(
-  tmdb: TMDbMovieResult
-): {
+export function tmdbToMovieMinimal(tmdb: TMDbMovieResult): {
   id: number
   title: string
   titleCN: string
@@ -152,9 +135,7 @@ export function tmdbToMovieMinimal(
     id: tmdb.id,
     title: tmdb.original_title,
     titleCN: tmdb.title,
-    year: tmdb.release_date
-      ? new Date(tmdb.release_date).getFullYear()
-      : 0,
+    year: tmdb.release_date ? new Date(tmdb.release_date).getFullYear() : 0,
     director: '',
     rating: Math.round(tmdb.vote_average * 10) / 10,
     genres: (tmdb.genre_ids ?? []).map(getGenreName),
@@ -162,27 +143,22 @@ export function tmdbToMovieMinimal(
     description: tmdb.overview,
     tagline: '',
     photo: tmdb.poster_path ?? '',
-    backdrop: tmdb.backdrop_path ?? '',
+    backdrop: tmdb.backdrop_path ?? ''
   }
 }
 
 /** Enrich a minimal Movie with full detail (director, runtime, backdrop) */
-export function enrichMovieWithDetail(
-  movie: ReturnType<typeof tmdbToMovieMinimal>,
-  detail: TMDbMovieDetail
-): ReturnType<typeof tmdbToMovieMinimal> {
-  const director =
-    detail.credits?.crew?.find((c) => c.job === 'Director')?.name ?? ''
+export function enrichMovieWithDetail(movie: ReturnType<typeof tmdbToMovieMinimal>, detail: TMDbMovieDetail): ReturnType<typeof tmdbToMovieMinimal> {
+  const director = detail.credits?.crew?.find(c => c.job === 'Director')?.name ?? ''
   return {
     ...movie,
     director,
     duration: detail.runtime ?? 0,
-    genres:
-      detail.genres?.map((g) => g.name) ?? movie.genres,
+    genres: detail.genres?.map(g => g.name) ?? movie.genres,
     description: detail.overview ?? movie.description,
     tagline: detail.tagline ?? '',
     photo: detail.poster_path ?? movie.photo,
-    backdrop: detail.backdrop_path ?? movie.backdrop,
+    backdrop: detail.backdrop_path ?? movie.backdrop
   }
 }
 
@@ -192,17 +168,14 @@ export function tmdbDetailToMovie(detail: TMDbMovieDetail): Movie {
     id: detail.id,
     title: detail.original_title,
     titleCN: detail.title,
-    year: detail.release_date
-      ? new Date(detail.release_date).getFullYear()
-      : 0,
-    director:
-      detail.credits?.crew?.find((c) => c.job === 'Director')?.name ?? '',
+    year: detail.release_date ? new Date(detail.release_date).getFullYear() : 0,
+    director: detail.credits?.crew?.find(c => c.job === 'Director')?.name ?? '',
     rating: Math.round(detail.vote_average * 10) / 10,
-    genres: detail.genres?.map((g) => g.name) ?? [],
+    genres: detail.genres?.map(g => g.name) ?? [],
     duration: detail.runtime ?? 0,
     description: detail.overview ?? '',
     tagline: detail.tagline ?? '',
     photo: detail.poster_path ?? '',
-    backdrop: detail.backdrop_path ?? '',
+    backdrop: detail.backdrop_path ?? ''
   }
 }
