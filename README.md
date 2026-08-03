@@ -1,4 +1,5 @@
-**在线地址**：https://reel-movie.chaukane2004.workers.dev （注意：国内访问可能需要科学上网）
+**在线地址**：https://reelmovie.kaneisme.xyz
+（注意：国内访问可能需要科学上网）
 
 # REEL · 每日好片
 
